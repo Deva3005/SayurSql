@@ -74,9 +74,105 @@ select quantity from Books where Title='A and Author = {Author}""")
         self.cursor.execute("DESCRIBE Customers;")
         return self.cursor.fetchall()
 
-# db=BookStoreDB()
-# x=db.get_customer_details1("arjun@example.com")
+    def get_book_details(self,bookid):
+        self.cursor.execute(f"select * from Books where id = {bookid}")
+        return self.cursor.fetchall()
+
+    def gen_book_detail_for_bill(self,bookid)->list:
+        det=self.get_book_details(bookid)
+        # 0 -> Title
+        # 1 -> Author
+        # 2 -> Price
+        # 3 -> Qty
+        # ("Ponniyin Selvan", "Kalki", 399.0, 10)
+        return [x for x in det]
+
+    def get_purchase_details(self,offset=None):
+        query="""
+            SELECT s.sales_date,b.title,b.author,b.price,s.quantity_sold,c.name,c.email,c.city
+            from `Sales` as s 
+            JOIN `Books` as b 
+                on s.bookid = b.id
+            JOIN `Customers` as c
+                on s.customerid = c.id
+        """
+        if offset==None:
+            self.cursor.execute(query)
+        else:
+            self.cursor.execute(query+f"limit 10 offset {offset}")
+        return self.cursor.fetchall()
+
+    def total_purchase_count(self):
+        self.cursor.execute("select count(*) from Sales")
+        return self.cursor.fetchall()
+
+    def get_purchase_det_by_user(self,offset,id):
+        list_attr="""
+                SELECT
+                    s.sales_date,
+                    c.name,
+                    -- c.email,
+                    c.city,
+                    -- s.bookid,
+                    b.title,
+                    CONCAT("x ",s.quantity_sold),
+                    CONCAT("$ ",b.price),
+                    CONCAT("$ ",b.price*s.quantity_sold) as total """
+        count="""select count(*) """
+        query=f"""
+            from `Customers` as c
+            LEFT JOIN `Sales` as s ON c.id=s.customerid
+            LEFT JOIN `Books` as b on b.id=s.bookid
+            -- GROUP BY city
+            where c.id={id}
+            ORDER BY s.sales_date desc """
+        self.cursor.execute(list_attr+query+f"\nlimit 10 offset {offset}")
+        l=self.cursor.fetchall()
+        self.cursor.execute(count+query)
+        c=self.cursor.fetchall()[0]
+        return l,c
+    
+    def test_most_valuble_records_data(self):
+        print("testing....")
+        self.cursor.execute("""
+            SELECT 
+        -- c.id,c.name,c.email,
+        c.city,
+        -- s.sales_date,s.bookid,
+        sum(s.quantity_sold),
+        -- b.title,b.price,
+        sum(b.price*s.quantity_sold) as total 
+    from `Customers` as c
+    LEFT JOIN `Sales` as s ON c.id=s.customerid
+    LEFT JOIN `Books` as b on b.id=s.bookid
+    GROUP BY city
+    ORDER BY total desc; 
+        """)
+    
+        return self.cursor.fetchall()
+
+db=BookStoreDB()
+# x=db.test_most_valuble_records_data()
 # print(x)
+# print(tabulate(x,tablefmt="grid"))
+# print(y)
+
+print("""
+              
+        ,....,
+      ,::::::<              Most Valuable Customer of Bookstore 101 || {datetime.now().strftime("%Y")} ||
+     ,::/^\"``.
+    ,::/, `   e`.           Name            : {data[1]}
+   ,::; |        '.
+   ,::|  \___,-.  c)        Email           : {data[2]}
+   ;::|     \   '-'
+   ;::|      \              Location        : {data[3]}
+   ;::|   _.=`\
+
+
+        Home  [0]
+
+        """)
 
 # books=[
 #         ("Ponniyin Selvan", "Kalki", 399.0, 10),
@@ -118,9 +214,9 @@ select quantity from Books where Title='A and Author = {Author}""")
 # print(x)
 
 
-a={1:["deva","today"],2:["arjun","afternoon"]}
-sales=[[x]+a[x] for x in a]
-print(sales)
+# a={1:["deva","today"],2:["arjun","afternoon"]}
+# sales=[[x]+a[x] for x in a]
+# print(sales)
 
 
 

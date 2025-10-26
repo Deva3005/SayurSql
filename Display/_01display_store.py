@@ -40,6 +40,7 @@ class DisplayStore:
                               \\`_..---.Y.---.._`//
                                 '`               `'
 
+        
         """
         return header
 
@@ -54,13 +55,15 @@ class DisplayStore:
         self.clear_screen()
         print(self.display_header()+"""
               
-              [*] Login/Register.......................[ok]
-              [0] Home.................................[ok]
-              [1] Catalogue.[All].[Title.Search].......[ok]
-              [2] Book Management.[Add].[Update].......[ok]
-              [3] Purchase Management..................[Under-Development]
-              [4] Review All Purchase..................[Under-Development]
-              [5] Customer Management..................[Under-Development]
+              ++++++++++++++   HOME         ++++++++++++++
+              
+              [1] Login/Register.......................[ok]
+              [2] Catalogue............................[ok]
+              [3] Book Management......................[ok]
+              [4] Purchase Management..................[ok]
+              [5] Review All Purchase..................[ok]
+              [6] Customer Management..................[ok]
+              [7] MOST VALUBLE RECORDS.................[ok]
               [q] Quit.................................[ok]
 
             """)
@@ -72,9 +75,9 @@ class DisplayStore:
 
             UN-AUTHORIZED | PROHIBITED
               
-            You'll be Redirected to HOME in 2 Seconds
+            Press any Key to reach HOME Page [0]
             """)
-        time.sleep(2)
+        input()
         self.display_home()
     
     #+++++Catalogue++++++++++++++++++++++++++++++++++++++
@@ -247,7 +250,28 @@ class DisplayStore:
                     )
         # Login
         login_input=input()
-        if login_input == "1":
+        if login_input == "1" and self.customerName=="Anonymous":
+            email = pyinp.inputEmail("Enter your Email...\t")
+            if email in self.db.list_emails():
+                customer_details = self.db.get_customer_details(email=email)
+                print(customer_details[1],"Logged IN SuccessFully...")
+                print("You'll be Redirected Shortly to HOME!!!...")
+                self.customerName=customer_details[1]
+                self.customerEmail=email
+                self.customerid=customer_details[0]
+                self.customerDetails=customer_details
+                time.sleep(2)
+                self.display_home()
+            # Sign Up Process  [implicit]
+            # Sign Up ends and Redirects to LOGIN
+            else:
+                print("Register Now with the email")
+                print(self.display_header()+" Register Now  & Login !!!")
+                customer = self.db.create_customer()
+                self.db.add_customer_to_table(**customer)
+                self.display_login()
+        elif login_input=="1" and self.customerName!="Anonymous":
+            self.list_of_purchase=dict()
             email = pyinp.inputEmail("Enter your Email...\t")
             if email in self.db.list_emails():
                 customer_details = self.db.get_customer_details(email=email)
@@ -288,9 +312,10 @@ class DisplayStore:
         self.customerName="Anonymous"
         self.customerEmail="Kindly Login in!!!"
         self.customerid="[+]"
-        self.list_of_purchase=[]
+        self.list_of_purchase=dict()
         self.display_home()
-#+++++Purchase Management+++++++++++++++++++++++++++++++++++++
+    
+    #+++++Purchase Management+++++++++++++++++++++++++++++++++++++
     """
     To Make a Purchase 
     [Add to Cart [Phase 1], Checkout [Phase 2]] { PLAN !? }
@@ -350,14 +375,18 @@ class DisplayStore:
             self.display_searched_books(title=title,offset=0)
         elif purchase_input == "x":
             self.add_to_cart()
-        elif purchase_input=="c":
+        elif purchase_input=="c" and self.customerName!="Anonymous":
             self.gen_bill()
             # print(self.list_of_purchase)
             input()
             # time.sleep(1)
             self.display_home()
+        else:
+            self.display_purchase_page()
 
+    # SOME BUG IS STILL HERE !!!
     def add_to_cart(self):
+        # User can't add to cart when he is Anonymous
         if self.customerName == "Anonymous":
             print("Not Allowed to Purchase book\nPlease Login...")
             self.display_login()
@@ -365,25 +394,32 @@ class DisplayStore:
             customerId=self.customerid
             bookId = pyinp.inputInt(prompt="Enter the Book Id\t",max=self.db.total_books_entries(),min=1)
             stock_of_book=self.db.check_stock(bookId)[0]
-            print(stock_of_book, "Stock Is available")
-            quantity = pyinp.inputInt(prompt="Kindly enter the Quantity...\t",min=1,max=stock_of_book)
-            # Sales Table Entity
-            x=[customerId,quantity,self.datenow]
-            if bookId in self.list_of_purchase.keys():
-                new_qty=self.list_of_purchase[bookId][1]+quantity
-                if new_qty > stock_of_book:
-                    print(f"Max stocked in {stock_of_book} so {new_qty} books can't be delivered...")
-                    print(f"Will Be Re-stocked in Every Monday")
-                    time.sleep(1)
-                    new_qty=stock_of_book
-                self.list_of_purchase[bookId][1]=new_qty
-                time.sleep(1)
-                self.display_purchase_page()
+            if stock_of_book == 0: 
+                # Case: If No Stock available | it shows the message & navigate to Catalogue...
+                print("No Stock Available right Now!!!")
+                print(*self.db.get_book_details(bookid=bookId)[0],sep="\t")
+                time.sleep(2)
+                self.display_all_books()
             else:
-                self.list_of_purchase[bookId]=x
-                print(self.list_of_purchase)
-                time.sleep(1)
-                self.display_purchase_page()
+                print(stock_of_book, "Stock Is available")
+                quantity = pyinp.inputInt(prompt="Kindly enter the Quantity...\t",min=1,max=stock_of_book)
+                # Sales Table Entity
+                x=[customerId,quantity,self.datenow]
+                if bookId in self.list_of_purchase.keys():
+                    new_qty=self.list_of_purchase[bookId][1]+quantity
+                    if new_qty > stock_of_book:
+                        print(f"Max stocked in {stock_of_book} so {new_qty} books can't be delivered...")
+                        print(f"Will Be Re-stocked in Every Monday")
+                        time.sleep(1)
+                        new_qty=stock_of_book
+                    self.list_of_purchase[bookId][1]=new_qty
+                    time.sleep(1)
+                    self.display_purchase_page()
+                else:
+                    self.list_of_purchase[bookId]=x
+                    print(self.list_of_purchase)
+                    time.sleep(1)
+                    self.display_purchase_page()
 
     # S.no Title, Author, Price, Qty, total
     # 1   xxx     xxxx    299.99  x1  299.99
@@ -391,41 +427,210 @@ class DisplayStore:
     # ______________________________________
 
     # Grand Total                     699.99
-
     def gen_bill(self):
-        gen_bill_response=input("To Confirm the Purchase\n"+"[Yes] (y)          [No] (n)")
-        if gen_bill_response.lower() == "y" or gen_bill_response.lower()=="yes":
-            salesEntry=[[x]+self.list_of_purchase[x] for x in self.list_of_purchase]
-            print(salesEntry)
-            print("BookId, CustomerId, Quantity, Date")
+        salesEntry=[[x]+self.list_of_purchase[x] for x in self.list_of_purchase]
+        print(tabulate(salesEntry))
+        # print("In GEN BILL SECTION",salesEntry) # For DEBUG
+        bill_det=[]
+        for i in salesEntry:
+            data=self.db.get_book_details(i[0])[0]
+            # print(data) # FOR DEBUGGING
+            bill_det.append([i[0],data[1],data[2],data[3],i[2],data[3]*i[2]])
+        # print(salesEntry)
+        str1=f"""
+            Dear Customer {self.customerDetails[1]}, {self.customerDetails[3]}
+
+            You purchases on {datetime.now().strftime("%d, %B %Y [%H:%M]")}
+
+        """
+        print(str1)
+        x=tabulate(bill_det,headers=["Book Id","Title","Author","Price","Purchased Quants","Total"],tablefmt="grid")
+        for i in x.splitlines():
+            print(i.center(shutil.get_terminal_size().columns-20," "))
+        print(f"""
+            Grand Total {sum([x[-1] for x in bill_det])}
+
+            Thank You Visit us Any time.""")
+            
+        gen_bill_response=input("\t\tTo Confirm the Purchase\n"+
+                                "\t\t[Yes] (y)          [No] (n)\n")
+        
+        if gen_bill_response.lower() == "y" or gen_bill_response.lower()=="yes":            
             # Sales Table Update Entry...
             self.db.update_sales_data(sales_data=salesEntry)
             # Stock Update in Books...
             for data in salesEntry:
                 self.db.update_book_quantity_on_purchase(data[0],data[2])
-            # print(salesEntry)
-            str1=f"""
-                Dear Customer {self.customerDetails[1]}, {self.customerDetails[3]}
-
-                You purchases on {datetime.now().strftime("%d, %B %Y [%H:%M]")}
-
-                Book Title      Price       Qty         Total
-
-            """
-            x=tabulate(salesEntry,headers=["Book Id","Customer Id","Qty","Date"],tablefmt="grid")
-            for i in x.splitlines():
-                print(i.center(shutil.get_terminal_size().columns-20," "))
-            print("""
-                Grand Total
-
-                Thank You Visit us Any time.""")
+            print(self.display_header()+"\nPurchase is DONE\nThank You Visit us Again")
+            input()
+            self.display_all_books()
+            self.list_of_purchase=dict()
         else:
             response=input("[0] To Clear cart\n[1] To Logout")
             if response == "0":
                 self.list_of_purchase.clear()
-                print(self.list_of_purchase)
+                # print(self.list_of_purchase)
             elif response == "1":
                 self.logout()
             else:
                 self.display_unauthorized()
 
+    # Purchase Management 
+
+    #+++++Purchase Review+++++++++++++++++++++++++++++++++++++
+
+    def display_all_purchase(self,offset=0,email=None):
+        print(self.display_header())
+        total_purchase_count=self.db.get_purchase_details(offset,email=email)[1][0]
+        print(tabulate([[x]+[*y] for x,y in enumerate(self.db.get_purchase_details(offset,email=email)[0])],tablefmt="grid"))
+        print(f"""
+        next   [n]                                                      previous [p]
+              
+        filter [f]                                                         home  [0]
+
+        """)
+        response=input()
+        self.clear_screen()
+        
+        if response == "n" and total_purchase_count >=11:
+            offset+=10
+            if offset > total_purchase_count:
+                offset=total_purchase_count-10
+            # print(tabulate(self.db.get_purchase_details(offset),tablefmt="grid"))
+            self.display_all_purchase(offset,email=email)
+        elif response=="p" and total_purchase_count >=11:
+            offset-=10
+            if offset < 0:
+                offset=0
+            self.display_all_purchase(offset,email=email)
+        elif response=="f": 
+            email=pyinp.inputEmail("Enter the Email for filter...")
+            if email in self.db.list_emails():
+                self.display_all_purchase(offset,email=email)
+                print("Email Output")
+            else:
+                print("Enter email is not Listed in BookStore 101")
+                time.sleep(1)
+                self.display_all_purchase()
+        elif response == "0":
+            self.display_home()
+        else:
+            if response in ("n","p"):
+                print(f"Total Purchase is {total_purchase_count} so pagination not required...")
+                input()
+                self.display_all_purchase(offset,email=email)
+            else:
+                self.display_all_purchase(offset,email=email)
+
+    #+++++User Details+++++++++++++++++++++++++++++++++++++
+    def display_customer_page(self,offset=0):
+        x=self.db.get_user_details()
+        total_user=x[1]
+        print(self.display_header())
+        print(tabulate(x[0],tablefmt="grid"))
+        print(f"""
+        next    [n]                                                      previous [p]
+              
+        details [d]                                                         home  [0]
+
+        """)
+        response=input()
+        self.clear_screen()
+        
+        if response == "n" and total_user >=11:
+            offset+=10
+            if offset > total_user:
+                offset=total_user-10
+            # print(tabulate(self.db.get_purchase_details(offset),tablefmt="grid"))
+            self.display_customer_page(offset)
+        elif response=="p" and total_user >=11:
+            offset-=10
+            if offset < 0:
+                offset=0
+            self.display_customer_page(offset)
+        elif response=="d": 
+            userid=pyinp.inputNum("Enter the Customer Id for Detail...",min=1,max=total_user)
+            print(userid," << UserId")
+            off=0
+            self.user_details(offset=off,id=userid)
+        elif response == "0":
+            self.display_home()
+        else:
+            if response in ("n","p"):
+                print(f"Total User is {total_user} so pagination not required...")
+                input()
+                self.display_customer_page(offset)
+            else:
+                self.display_customer_page(offset)
+    
+    def user_details(self,offset,id):
+        user_data1=self.db.overall_purchase_summary(id)
+        print(self.display_header()+f"""
+
+        Name : {user_data1[1]}                 
+        Email: {user_data1[2]}
+
+
+        Total Number of Books Purchase: {user_data1[3]}
+        Total Amount Spent  : {user_data1[4]}
+
+        """)
+        data=self.db.get_purchase_det_by_user(offset,id)
+        total_count=data[1][0]
+        print(tabulate(data[0],tablefmt="grid"))
+        print(f"""
+        next    [n]                                                      previous [p]
+              
+        home    [0]
+
+        """)
+        response=input()
+        # self.clear_screen()
+        if response == "n" and total_count >=11:
+            offset+=10
+            if offset > total_count:
+                offset=total_count-10
+            self.user_details(offset,id)
+        elif response=="p" and total_count >=11:
+            offset-=10
+            if offset < 0:
+                offset=0
+            self.user_details(offset,id)
+        elif response == "0":
+            self.display_home()
+        else:
+            if response in ("n","p"):
+                print(f"Total Count is {total_count} so pagination not required...")
+                input()
+                self.user_details(offset,id)
+            else:
+                self.display_unauthorized()
+
+    def most_valuble_records(self):
+        master_data=self.db.most_valuble_records_data()
+        data=master_data[0]
+        # print(data,"Check the FOrmat please")
+        print(self.display_header()+f"""
+              
+        ,....,
+      ,::::::<              Most Valuable Customer of Bookstore 101 || {datetime.now().strftime("%Y")} ||
+     ,::/^\"``.
+    ,::/, `   e`.           Name            : {data[1]}
+   ,::; |        '.
+   ,::|  \___,-.  c)        Email           : {data[2]}
+   ;::|     \   '-'
+   ;::|      \              Location        : {data[3]}
+   ;::|   _.=`
+                            Total Books     : {data[4]}
+
+                            Total Amount    : {data[5]}
+        
+        Home  [0]
+
+        """)
+        print("LeaderBoard [1] >>> \n"+tabulate(master_data,tablefmt="grid"))
+        res=input()
+        if res == "0":
+            self.display_home()
+        else:
+            self.most_valuble_records()

@@ -128,6 +128,10 @@ class BookStoreDB:
             select quantity from Books where id = {bookId}
         """)
         return self.cursor.fetchone()
+
+    def get_book_details(self,bookid):
+        self.cursor.execute(f"select * from Books where id = {bookid}")
+        return self.cursor.fetchall()
     
     # Cursor - Update Execution & Update [Commit action] [Purchase Management] [3]
     def update_book_quantity_on_purchase(self,bookId,quantity):
@@ -144,3 +148,108 @@ class BookStoreDB:
                 INSERT INTO `Sales` (bookid,customerid,quantity_sold,sales_date) VALUES (%s,%s,%s,%s)
         """,sales_data)
         self.db.commit()
+
+    # get All Purchase with Customer and Book Data
+    def get_purchase_details(self,offset=0,email=None):
+        cols="SELECT s.sales_date,b.title,b.author,b.price,s.quantity_sold,c.name,c.email,c.city"
+        counts="select count(*)"
+        query="""
+            from `Sales` as s 
+            JOIN `Books` as b 
+                on s.bookid = b.id
+            JOIN `Customers` as c
+                on s.customerid = c.id
+        """
+        # For Filters
+        if email!=None:
+            query+=f"where c.email = '{email}'"
+        else:
+            query+=""
+
+        self.cursor.execute(cols+query+" order by sales_date desc "+f"limit 10 offset {offset}")
+        l=self.cursor.fetchall()
+        self.cursor.execute(counts+query)
+        count=self.cursor.fetchall()[0]
+        return l,count
+
+    def total_purchase_count(self):
+        self.cursor.execute("select count(*) from Sales")
+        return self.cursor.fetchall()
+    
+    # Get User Details and All Data...
+    def get_user_details(self):
+        col1="select *"
+        col2="select count(*)"
+        query="""
+             from `Customers`;
+        """
+        self.cursor.execute(col1+query)
+        l=self.cursor.fetchall()
+        self.cursor.execute(col2+query)
+        c=self.cursor.fetchone()[0]
+        return l,c
+    
+    def get_purchase_det_by_user(self,offset,id):
+        list_attr="""
+                SELECT
+                    s.sales_date,
+                    c.name,
+                    -- c.email,
+                    c.city,
+                    -- s.bookid,
+                    b.title,
+                    CONCAT("x ",s.quantity_sold),
+                    CONCAT("$ ",b.price),
+                    CONCAT("$ ",b.price*s.quantity_sold) as total """
+        count="""select count(*) """
+        query=f"""
+            from `Customers` as c
+            LEFT JOIN `Sales` as s ON c.id=s.customerid
+            LEFT JOIN `Books` as b on b.id=s.bookid
+            -- GROUP BY city
+            where c.id={id}
+            ORDER BY s.sales_date desc """
+        self.cursor.execute(list_attr+query+f"\nlimit 10 offset {offset}")
+        l=self.cursor.fetchall()
+        self.cursor.execute(count+query)
+        c=self.cursor.fetchall()[0]
+        return l,c
+    
+    def overall_purchase_summary(self,id):
+        query=f"""
+            SELECT 
+                c.id,c.name,c.email,
+                -- c.city,
+                -- s.sales_date,
+                -- s.bookid,
+                sum(s.quantity_sold),
+                -- b.title,b.price,
+                sum(b.price*s.quantity_sold) as total 
+            from `Customers` as c
+                LEFT JOIN `Sales` as s ON c.id=s.customerid
+                LEFT JOIN `Books` as b on b.id=s.bookid
+            where c.id = {id}
+            GROUP BY c.id
+            ORDER BY total desc;
+        """
+        self.cursor.execute(query)
+        return self.cursor.fetchall()[0]
+
+    def most_valuble_records_data(self):
+        self.cursor.execute("""
+            SELECT 
+                c.id,c.name,c.email,
+                c.city,
+                -- s.sales_date,s.bookid,
+                sum(s.quantity_sold),
+                -- b.title,b.price,
+                sum(b.price*s.quantity_sold) as total 
+            from `Customers` as c
+            LEFT JOIN `Sales` as s ON c.id=s.customerid
+            LEFT JOIN `Books` as b on b.id=s.bookid
+            GROUP BY c.id
+            ORDER BY total desc;   
+        """)
+        m_v_customer=self.cursor.fetchall()
+        print(m_v_customer,"From database")
+        return m_v_customer
