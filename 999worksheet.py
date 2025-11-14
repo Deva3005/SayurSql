@@ -4,38 +4,55 @@ from functools import reduce
 from tabulate import tabulate
 
 class BookStoreDB:
-
+    print("Check")
     db=mysql.connector.connect(
            host="localhost",
-           user="deva",
-           password="deva",
+           user="root",
+           password="root",
            database="BookStore_remastered"
        )
+    print("Done")
     
     cursor=db.cursor()
     def insert_data_books(self):
+
+        genres = [
+    "Politics",
+    "History",
+    "War",
+    "Power",
+    "Kingdom",
+    "Rebellion",
+    "Legacy",
+    "Golden Age of Piracy",
+    "Creeds"
+]
+
         
-        list_book=[(f"Vol {x} Master & Slaves","Deva",random.randrange(200,1000),random.randrange(1,30)) for x in range(1,50)]
+        list_book=[(f"Vol {x} Master & Slaves","Deva",random.randrange(200,1000),random.randrange(1,30),random.choice(genres)) for x in range(1,50)]
         books=[
-        ("Ponniyin Selvan", "Kalki", 399.0, 10),
-        ("Thirukkural", "Thiruvalluvar", 199.0, 3),
-        ("Wings of Fire", "A.P.J. Abdul Kalam", 350.0, 7),
-        ("The Alchemist", "Paulo Coelho", 299.0, 2),
-        ("The Guide", "R.K. Narayan", 250.0, 8)
+        ("Ponniyin Selvan", "Kalki", 399.0, 10,random.choice(genres)),
+        ("Thirukkural", "Thiruvalluvar", 199.0, 3,random.choice(genres)),
+        ("Wings of Fire", "A.P.J. Abdul Kalam", 350.0, 7,random.choice(genres)),
+        ("The Alchemist", "Paulo Coelho", 299.0, 2,random.choice(genres)),
+        ("The Guide", "R.K. Narayan", 250.0, 8,random.choice(genres))
     ]
-        self.cursor.executemany("insert into Books(Title,Author,Price,Quantity) values(%s,%s,%s,%s)",list_book)
+        self.cursor.executemany("insert into Books(Title,Author,Price,Quantity,genre) values(%s,%s,%s,%s,%s)",books)
+        self.cursor.executemany("insert into Books(Title,Author,Price,Quantity,genre) values(%s,%s,%s,%s,%s)",list_book)
         self.db.commit()
     
     def insert_data_customer_and_sales(self):
         customers = [
         (1, "Arjun", "arjun@example.com", "Chennai"),
         (2, "Priya", "priya@example.com", "Coimbatore"),
-        (3, "Ravi", "ravi@example.com", "Madurai")
+        (3, "Ganesh", "ganesh@example.com", "Madurai"),
+        (4, "Raju", "raju@example.com", "Tanjore"),
+        (3, "Deva", "deva@example.com", "Cuddalore"),
 ]
         sales = [
     (1, 1, 1, 2, "2025-09-10"),  # Arjun buys 2 Ponniyin Selvan
     (2, 3, 2, 1, "2025-09-11"),  # Priya buys 1 Wings of Fire
-    (3, 2, 3, 1, "2025-09-12")   # Ravi buys 1 Thirukkural
+    (3, 2, 3, 1, "2025-09-12")   # Ganesh buys 1 Thirukkural
 ]
 
         self.cursor.executemany("insert into Customers values(%s,%s,%s,%s)",customers)
@@ -50,129 +67,137 @@ class BookStoreDB:
         self.cursor.execute("select * from Books")
         return self.cursor.fetchall()
     
-    def show_books_schema(self):
-        self.cursor.execute("DESCRIBE Books;")
-        return self.cursor.fetchall()
-    def run(self):
-        self.cursor.execute("""
-select quantity from Books where Title='A and Author = {Author}""")
-    def list_emails(self):
-        self.cursor.execute("select email from Customers;")
-        return reduce(lambda x,y:x+y,self.cursor.fetchall())
+#     def show_books_schema(self):
+#         self.cursor.execute("DESCRIBE Books;")
+#         return self.cursor.fetchall()
+#     def run(self):
+#         self.cursor.execute("""
+# select quantity from Books where Title='A and Author = {Author}""")
+#     def list_emails(self):
+#         self.cursor.execute("select email from Customers;")
+#         return reduce(lambda x,y:x+y,self.cursor.fetchall())
     
-    # Get customer Details via Email
-    def get_customer_details(self,email):
-        self.cursor.execute(f"select * from Customers where email = '{email}'")
-        return self.cursor.fetchall()[0]
+#     # Get customer Details via Email
+#     def get_customer_details(self,email):
+#         self.cursor.execute(f"select * from Customers where email = '{email}'")
+#         return self.cursor.fetchall()[0]
     
-    def get_customer_details1(self,email):
-        self.cursor.execute(f"select * from Customers where email = '{email}'")
-        return [x for i in self.cursor.fetchall() for x in i]
+#     def get_customer_details1(self,email):
+#         self.cursor.execute(f"select * from Customers where email = '{email}'")
+#         return [x for i in self.cursor.fetchall() for x in i]
     
-    # Listing Schema for Update and Create Purposes [User Management] [*]
-    def show_customer_schema(self):
-        self.cursor.execute("DESCRIBE Customers;")
-        return self.cursor.fetchall()
+#     # Listing Schema for Update and Create Purposes [User Management] [*]
+#     def show_customer_schema(self):
+#         self.cursor.execute("DESCRIBE Customers;")
+#         return self.cursor.fetchall()
 
-    def get_book_details(self,bookid):
-        self.cursor.execute(f"select * from Books where id = {bookid}")
-        return self.cursor.fetchall()
+#     def get_book_details(self,bookid):
+#         self.cursor.execute(f"select * from Books where id = {bookid}")
+#         return self.cursor.fetchall()
 
-    def gen_book_detail_for_bill(self,bookid)->list:
-        det=self.get_book_details(bookid)
-        # 0 -> Title
-        # 1 -> Author
-        # 2 -> Price
-        # 3 -> Qty
-        # ("Ponniyin Selvan", "Kalki", 399.0, 10)
-        return [x for x in det]
+#     def gen_book_detail_for_bill(self,bookid)->list:
+#         det=self.get_book_details(bookid)
+#         # 0 -> Title
+#         # 1 -> Author
+#         # 2 -> Price
+#         # 3 -> Qty
+#         # ("Ponniyin Selvan", "Kalki", 399.0, 10)
+#         return [x for x in det]
 
-    def get_purchase_details(self,offset=None):
-        query="""
-            SELECT s.sales_date,b.title,b.author,b.price,s.quantity_sold,c.name,c.email,c.city
-            from `Sales` as s 
-            JOIN `Books` as b 
-                on s.bookid = b.id
-            JOIN `Customers` as c
-                on s.customerid = c.id
-        """
-        if offset==None:
-            self.cursor.execute(query)
-        else:
-            self.cursor.execute(query+f"limit 10 offset {offset}")
-        return self.cursor.fetchall()
+#     def get_purchase_details(self,offset=None):
+#         query="""
+#             SELECT s.sales_date,b.title,b.author,b.price,s.quantity_sold,c.name,c.email,c.city
+#             from `Sales` as s 
+#             JOIN `Books` as b 
+#                 on s.bookid = b.id
+#             JOIN `Customers` as c
+#                 on s.customerid = c.id
+#         """
+#         if offset==None:
+#             self.cursor.execute(query)
+#         else:
+#             self.cursor.execute(query+f"limit 10 offset {offset}")
+#         return self.cursor.fetchall()
 
-    def total_purchase_count(self):
-        self.cursor.execute("select count(*) from Sales")
-        return self.cursor.fetchall()
+#     def total_purchase_count(self):
+#         self.cursor.execute("select count(*) from Sales")
+#         return self.cursor.fetchall()
 
-    def get_purchase_det_by_user(self,offset,id):
-        list_attr="""
-                SELECT
-                    s.sales_date,
-                    c.name,
-                    -- c.email,
-                    c.city,
-                    -- s.bookid,
-                    b.title,
-                    CONCAT("x ",s.quantity_sold),
-                    CONCAT("$ ",b.price),
-                    CONCAT("$ ",b.price*s.quantity_sold) as total """
-        count="""select count(*) """
-        query=f"""
-            from `Customers` as c
-            LEFT JOIN `Sales` as s ON c.id=s.customerid
-            LEFT JOIN `Books` as b on b.id=s.bookid
-            -- GROUP BY city
-            where c.id={id}
-            ORDER BY s.sales_date desc """
-        self.cursor.execute(list_attr+query+f"\nlimit 10 offset {offset}")
-        l=self.cursor.fetchall()
-        self.cursor.execute(count+query)
-        c=self.cursor.fetchall()[0]
-        return l,c
+#     def get_purchase_det_by_user(self,offset,id):
+#         list_attr="""
+#                 SELECT
+#                     s.sales_date,
+#                     c.name,
+#                     -- c.email,
+#                     c.city,
+#                     -- s.bookid,
+#                     b.title,
+#                     CONCAT("x ",s.quantity_sold),
+#                     CONCAT("$ ",b.price),
+#                     CONCAT("$ ",b.price*s.quantity_sold) as total """
+#         count="""select count(*) """
+#         query=f"""
+#             from `Customers` as c
+#             LEFT JOIN `Sales` as s ON c.id=s.customerid
+#             LEFT JOIN `Books` as b on b.id=s.bookid
+#             -- GROUP BY city
+#             where c.id={id}
+#             ORDER BY s.sales_date desc """
+#         self.cursor.execute(list_attr+query+f"\nlimit 10 offset {offset}")
+#         l=self.cursor.fetchall()
+#         self.cursor.execute(count+query)
+#         c=self.cursor.fetchall()[0]
+#         return l,c
     
-    def test_most_valuble_records_data(self):
-        print("testing....")
-        self.cursor.execute("""
-            SELECT 
-        -- c.id,c.name,c.email,
-        c.city,
-        -- s.sales_date,s.bookid,
-        sum(s.quantity_sold),
-        -- b.title,b.price,
-        sum(b.price*s.quantity_sold) as total 
-    from `Customers` as c
-    LEFT JOIN `Sales` as s ON c.id=s.customerid
-    LEFT JOIN `Books` as b on b.id=s.bookid
-    GROUP BY city
-    ORDER BY total desc; 
-        """)
+    # def test_most_valuble_records_data(self):
+    #     print("testing....")
+    #     self.cursor.execute("""
+    #         SELECT 
+    #     -- c.id,c.name,c.email,
+    #     c.city,
+    #     -- s.sales_date,s.bookid,
+    #     sum(s.quantity_sold),
+    #     -- b.title,b.price,
+    #     sum(b.price*s.quantity_sold) as total 
+    # from `Customers` as c
+    # LEFT JOIN `Sales` as s ON c.id=s.customerid
+    # LEFT JOIN `Books` as b on b.id=s.bookid
+    # GROUP BY city
+    # ORDER BY total desc; 
+    #     """)
     
-        return self.cursor.fetchall()
+    #     return self.cursor.fetchall()
 
 db=BookStoreDB()
+print("Hello world")
+db.insert_data_books()
+# db.insert_data_customer_and_sales()
+
+
+
+
+
 # x=db.test_most_valuble_records_data()
 # print(x)
 # print(tabulate(x,tablefmt="grid"))
 # print(y)
 
-print("""
+# print("""
               
-        ,....,
-      ,::::::<              Most Valuable Customer of Bookstore 101 || {datetime.now().strftime("%Y")} ||
-     ,::/^\"``.
-    ,::/, `   e`.           Name            : {data[1]}
-   ,::; |        '.
-   ,::|  \___,-.  c)        Email           : {data[2]}
-   ;::|     \   '-'
-   ;::|      \              Location        : {data[3]}
-   ;::|   _.=`\
+#         ,....,
+#       ,::::::<              Most Valuable Customer of Bookstore 101 || {datetime.now().strftime("%Y")} ||
+#      ,::/^\"``.
+#     ,::/, `   e`.           Name            : {data[1]}
+#    ,::; |        '.
+#    ,::|  \___,-.  c)        Email           : {data[2]}
+#    ;::|     \   '-'
+#    ;::|      \              Location        : {data[3]}
+#    ;::|   _.=`\
 
 
-        Home  [0]
+#         Home  [0]
 
-        """)
+#         """)
 
 # books=[
 #         ("Ponniyin Selvan", "Kalki", 399.0, 10),

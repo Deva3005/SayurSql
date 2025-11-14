@@ -1,4 +1,5 @@
 from functools import reduce
+# import sqlite3
 import time
 import mysql.connector
 import pyinputplus as pyinp
@@ -11,6 +12,7 @@ class BookStoreDB:
            password="deva",
            database="BookStore_remastered"
        )
+    # db=sqlite3("bookstore.db")
     
     # Cursor Attribute 
     cursor=db.cursor()

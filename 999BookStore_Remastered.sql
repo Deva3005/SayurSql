@@ -1,39 +1,44 @@
--- CREATE DATABASE BookStore_remastered;
+-- Active: 1762954955541@@127.0.0.1@3306@mysql
+CREATE DATABASE BookStore_remastered;
 
--- show DATABASES;
+show DATABASES;
 
--- use BookStore_remastered;
+use BookStore_remastered;
 
--- show tables;
+show tables;
 
--- CREATE Table Customers (
---     id int PRIMARY KEY AUTO_INCREMENT,
---     name VARCHAR(50),
---     email VARCHAR(50) UNIQUE,
---     city VARCHAR(25)
--- );
+CREATE Table Customers (
+    id int PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50),
+    email VARCHAR(50) UNIQUE,
+    city VARCHAR(25)
+);
 
--- CREATE TABLE Books (
---     id INT PRIMARY KEY AUTO_INCREMENT,
---     title VARCHAR(100),
---     author VARCHAR(50),
---     price DECIMAL(5,2),
---     quantity INT
--- );
+CREATE TABLE Books (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(100),
+    author VARCHAR(50),
+    genre VARCHAR(50),
+    price DECIMAL(5,2),
+    quantity INT
+);
 
 
--- CREATE TABLE Sales (
---     id INT PRIMARY KEY AUTO_INCREMENT,
---     bookid INT NOT NULL,
---     customerid INT NOT NULL,
---     quantity_sold INT NOT NULL,
---     sales_date DATE NOT NULL,
--- );
+CREATE TABLE Sales (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    bookid INT NOT NULL,
+    customerid INT NOT NULL,
+    quantity_sold INT NOT NULL,
+    sales_date DATE NOT NULL
+);
 
--- alter table `Sales` add constraint fkcust1 FOREIGN KEY(customerid) REFERENCES `Customers`(id) on delete CASCADE on update CASCADE;
--- alter table `Sales` add constraint fkbook1 FOREIGN KEY(bookid) REFERENCES `Books`(id) on delete CASCADE on update CASCADE;
+alter table `Sales` add constraint fkcust1 FOREIGN KEY(customerid) REFERENCES `Customers`(id) on delete CASCADE on update CASCADE;
+alter table `Sales` add constraint fkbook1 FOREIGN KEY(bookid) REFERENCES `Books`(id) on delete CASCADE on update CASCADE;
 
--- select * from `Customers`;
+select * from `Customers`;
+
+SELECT genre, count(*) from bookstore_remastered.books
+GROUP BY genre;
 
 -- select * from `Sales`;
 
@@ -43,7 +48,7 @@
 -- update `Books` SET quantity=30
 -- WHERE quantity<0
 
--- SELECT * FROM `Books` where quantity <0;
+SELECT * FROM `Books`;
 
 
 -- select s.sales_date,b.title,b.author,b.price,s.quantity_sold,c.name,c.email,c.city
