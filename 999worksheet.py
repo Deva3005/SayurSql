@@ -2,6 +2,7 @@ import mysql.connector
 import random
 from functools import reduce
 from tabulate import tabulate
+from datetime import datetime, timedelta
 
 class BookStoreDB:
     print("Check")
@@ -43,22 +44,35 @@ class BookStoreDB:
     
     def insert_data_customer_and_sales(self):
         customers = [
-        (1, "Arjun", "arjun@example.com", "Chennai"),
-        (2, "Priya", "priya@example.com", "Coimbatore"),
-        (3, "Ganesh", "ganesh@example.com", "Madurai"),
-        (4, "Raju", "raju@example.com", "Tanjore"),
-        (3, "Deva", "deva@example.com", "Cuddalore"),
+        ("Arjun", "arjun@example.com", "Chennai"),
+        ("Priya", "priya@example.com", "Coimbatore"),
+        ("Ganesh", "ganesh@example.com", "Madurai"),
+        ("Raju", "raju@example.com", "Tanjore"),
+        ("Deva", "deva@example.com", "Cuddalore"),
 ]
         sales = [
-    (1, 1, 1, 2, "2025-09-10"),  # Arjun buys 2 Ponniyin Selvan
-    (2, 3, 2, 1, "2025-09-11"),  # Priya buys 1 Wings of Fire
-    (3, 2, 3, 1, "2025-09-12")   # Ganesh buys 1 Thirukkural
+    (1, 1, 2, "2025-09-10"),  # Arjun buys 2 Ponniyin Selvan
+    (3, 2, 1, "2025-09-11"),  # Priya buys 1 Wings of Fire
+    (2, 3, 1, "2025-09-12")   # Ganesh buys 1 Thirukkural
 ]
+        x=datetime.strptime("2025-09-15","%Y-%m-%d")
+    
+        sales1=[]
+        for i in range(75):
+            # booki, customerid, qty,sales date
+            for x1 in range(random.randrange(1,30)):
+                temp=(random.randrange(1,55),random.randrange(1,6),random.randrange(5,21),x.strftime("%Y-%m-%d"))
+                sales1.append(temp)
+            x+=timedelta(1)
+        
+        
+        
 
-        self.cursor.executemany("insert into Customers values(%s,%s,%s,%s)",customers)
+        self.cursor.executemany("insert into Customers(name,email,city) values(%s,%s,%s)",customers)
         self.db.commit()
 
-        self.cursor.executemany("insert into Sales values(%s,%s,%s,%s,%s)",sales)
+        self.cursor.executemany("insert into Sales(bookid,customerid,quantity_sold,sales_date) values(%s,%s,%s,%s)",sales)
+        self.cursor.executemany("insert into Sales(bookid,customerid,quantity_sold,sales_date) values(%s,%s,%s,%s)",sales1)
         self.db.commit()
 
 
@@ -170,8 +184,8 @@ class BookStoreDB:
 
 db=BookStoreDB()
 print("Hello world")
-db.insert_data_books()
-# db.insert_data_customer_and_sales()
+# db.insert_data_books()
+db.insert_data_customer_and_sales()
 
 
 

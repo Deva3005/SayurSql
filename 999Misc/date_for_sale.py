@@ -9,4 +9,3 @@ for i in range(75):
     sales.append(temp)
     print(x)
     x+=timedelta(1)
-print(sales)

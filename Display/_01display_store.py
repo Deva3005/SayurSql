@@ -48,7 +48,7 @@ class DisplayStore:
 
     # Miscellaneous Clear Screen!!!
     def clear_screen(self):
-        os.system("clear")
+        os.system("cls")
 
     # Miscellaneous Home Screen!!!
     def display_home(self):
@@ -417,7 +417,7 @@ class DisplayStore:
                     self.display_purchase_page()
                 else:
                     self.list_of_purchase[bookId]=x
-                    print(self.list_of_purchase)
+                    # print(self.list_of_purchase)
                     time.sleep(1)
                     self.display_purchase_page()
 
@@ -435,7 +435,7 @@ class DisplayStore:
         for i in salesEntry:
             data=self.db.get_book_details(i[0])[0]
             # print(data) # FOR DEBUGGING
-            bill_det.append([i[0],data[1],data[2],data[3],i[2],data[3]*i[2]])
+            bill_det.append([i[0],data[1],data[2],data[4],i[2],data[4]*i[2]])
         # print(salesEntry)
         str1=f"""
             Dear Customer {self.customerDetails[1]}, {self.customerDetails[3]}
@@ -462,9 +462,10 @@ class DisplayStore:
             for data in salesEntry:
                 self.db.update_book_quantity_on_purchase(data[0],data[2])
             print(self.display_header()+"\nPurchase is DONE\nThank You Visit us Again")
+            self.list_of_purchase.clear()
+            print(self.list_of_purchase,"Cleared Paid")
             input()
             self.display_all_books()
-            self.list_of_purchase=dict()
         else:
             response=input("[0] To Clear cart\n[1] To Logout")
             if response == "0":

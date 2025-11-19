@@ -45,8 +45,8 @@ GROUP BY genre;
 -- INSERT INTO `Sales` (bookid,customerid,quantity_sold,sales_date) VALUES ()
 
 -- # Restock
--- update `Books` SET quantity=30
--- WHERE quantity<0
+update `Books` SET quantity=30
+WHERE quantity<0
 
 SELECT * FROM `Books`;
 
